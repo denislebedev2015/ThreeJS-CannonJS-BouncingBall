@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Cannon.js and Three.js Example</title>
+    <style>
+        body { margin: 0; } /* Убирает отступы у body */
+        canvas { display: block; } /* Делает canvas блочным элементом */
+    </style>
+</head>
+<body>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cannon.js/0.6.2/cannon.min.js"></script> <!-- Подключает библиотеку cannon.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script> <!-- Подключает библиотеку three.js -->
+    <script>
+        // Physics
+        const world = new CANNON.World(); // Создает новый физический мир
+        world.gravity.set(0, -9.82, 0); // Устанавливает гравитацию в мире
+
+        const groundBody = new CANNON.Body({ // Создает новое тело (плоскость)
+            mass: 0, // Масса тела (0 означает, что тело неподвижно)
+            shape: new CANNON.Plane(), // Форма тела (плоскость)
+            material: new CANNON.Material({restitution: 0.8}) // Материал тела (с коэффициентом восстановления 0.8)
+        });
+        groundBody.position.y = -5; // Опускает плоскость на 5 единиц вниз по оси Y
+        groundBody.quaternion.setFromAxisAngle(new CANNON.Vec3(1, 0, 0), -Math.PI / 2); // Поворачивает плоскость на 90 градусов вокруг оси X
+        world.addBody(groundBody); // Добавляет тело в мир
+
+        const sphereBody = new CANNON.Body({ // Создает новое тело (шар)
+            mass: 1, // Масса тела
+            shape: new CANNON.Sphere(1), // Форма тела (сфера с радиусом 1)
+            material: new CANNON.Material({restitution: 0.8}) // Материал тела (с коэффициентом восстановления 0.8)
+        });
+        sphereBody.position.set(0, 5, 0); // Поднимает шар на 5 единиц вверх по оси Y
+        world.addBody(sphereBody); // Добавляет тело в мир
+
+        // Graphics
+        const scene = new THREE.Scene(); // Создает новую графическую сцену
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000); // Создает новую камеру
+        camera.position.z = 10; // Отодвигает камеру на 10 единиц назад по оси Z
+
+        const renderer = new THREE.WebGLRenderer(); // Создает новый рендерер
+        renderer.setSize(window.innerWidth, window.innerHeight); // Устанавливает размер рендерера равным размеру окна браузера
+        document.body.appendChild(renderer.domElement); // Добавляет canvas элемент рендерера на страницу
+
+        const groundGeometry = new THREE.PlaneGeometry(10, 10); // Создает геометрию для плоскости (ширина и высота равны 10)
+        const groundMaterial = new THREE.MeshBasicMaterial({color: 0x00ff00}); // Создает материал для плоскости (зеленый цвет)
+        const groundMesh = new THREE.Mesh(groundGeometry, groundMaterial); // Создает новый объект (плоскость) из геометрии и материала
+        groundMesh.position.y = -5; // Опускает плоскость на 5 единиц вниз по оси Y
+        groundMesh.rotation.x = -Math.PI / 2; // Поворачивает плоскость на 90 градусов вокруг оси X
+        scene.add(groundMesh); // Добавляет объект на сцену
+
+        const sphereGeometry = new THREE.SphereGeometry(1, 32, 32); // Создает геометрию для шара (радиус равен 1, 32 сегмента по ширине и высоте)
+        const sphereMaterial = new THREE.MeshBasicMaterial({color: 0xffff00}); // Создает материал для шара (желтый цвет)
+        const sphereMesh = new THREE.Mesh(sphereGeometry, sphereMaterial); // Создает новый объект (шар) из геометрии и материала
+        scene.add(sphereMesh); // Добавляет объект на сцену
+
+        // Animation
+        function animate() { // Функция анимации
+            requestAnimationFrame(animate); // Запрашивает новый кадр анимации
+
+            world.step(1 / 60); // Обновляет состояние физического мира
+            sphereMesh.position.copy(sphereBody.position); // Копирует позицию шара из физического мира в графический
+
+            renderer.render(scene, camera); // Обновляет изображение на экране
+        }
+
+        animate(); // Запускает анимацию
+    </script>
+</body>
+</html>
